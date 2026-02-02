@@ -1,27 +1,207 @@
-# pmf-interview-synthesizer
-# AI-assisted synthesis of customer interviews for PMF discovery
-
+import json
+import requests
 import streamlit as st
 
+# ----------------------------
+# Config
+# ----------------------------
 st.set_page_config(page_title="PMF Interview Synthesizer", layout="centered")
-
 st.title("PMF Interview Synthesizer (MVP)")
-st.write("Paste customer interview notes below. This tool will synthesize insights.")
+st.write("Paste customer interview notes below. This tool synthesizes pain points, themes, quotes, and PMF hypotheses.")
 
-notes = st.text_area("Interview notes or transcript", height=250)
+MODEL = "gpt-4o-mini"  # Good default for cost/speed. You can change later.
 
-if st.button("Analyze"):
+# ----------------------------
+# Helpers
+# ----------------------------
+def call_openai_synthesis(api_key: str, notes: str, context: str = "") -> dict:
+    """
+    Calls OpenAI Responses API and returns structured JSON.
+    """
+    system_instructions = (
+        "You are an assistant helping early-stage product teams synthesize customer interview notes.\n"
+        "Your job: extract evidence-based insights, avoid making up facts, and avoid overconfident conclusions.\n"
+        "Return ONLY valid JSON matching the schema exactly. No markdown, no extra text."
+    )
+
+    user_prompt = f"""
+CONTEXT (optional):
+{context.strip()}
+
+RAW INTERVIEW NOTES:
+{notes.strip()}
+
+TASK:
+1) Extract 5–10 key customer pain points (neutral, problem-focused, no solution language).
+2) Group them into 3–6 themes with short theme names.
+3) Provide 6–10 representative quotes from the notes (verbatim snippets).
+4) Write 4–7 candidate PMF hypotheses phrased to be testable.
+5) List 3–6 "open questions" that require more interviews to resolve.
+
+STRICT OUTPUT JSON SCHEMA:
+{{
+  "pain_points": ["..."],
+  "themes": [
+    {{
+      "theme": "...",
+      "pain_points": ["..."]
+    }}
+  ],
+  "quotes": [
+    {{
+      "quote": "...",
+      "supports": "pain_point or theme"
+    }}
+  ],
+  "pmf_hypotheses": ["..."],
+  "open_questions": ["..."]
+}}
+
+RULES:
+- Use ONLY information grounded in the notes for pain points/themes/quotes.
+- If notes are thin, say so in open_questions (do not invent).
+- Quotes must be copied directly from the notes (short snippets are fine).
+- Return ONLY JSON.
+""".strip()
+
+    url = "https://api.openai.com/v1/responses"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "model": MODEL,
+        "input": [
+            {"role": "system", "content": system_instructions},
+            {"role": "user", "content": user_prompt},
+        ],
+        # Encourage reliable JSON output
+        "text": {"format": {"type": "json_object"}},
+    }
+
+    r = requests.post(url, headers=headers, json=payload, timeout=60)
+    if r.status_code != 200:
+        raise RuntimeError(f"OpenAI API error {r.status_code}: {r.text}")
+
+    data = r.json()
+
+    # The Responses API returns text in output[0].content[0].text for many models
+    # We'll robustly search for the first text chunk.
+    json_text = None
+    try_paths = [
+        lambda d: d["output"][0]["content"][0]["text"],
+        lambda d: d["output_text"],
+    ]
+    for fn in try_paths:
+        try:
+            candidate = fn(data)
+            if isinstance(candidate, str) and candidate.strip():
+                json_text = candidate
+                break
+        except Exception:
+            pass
+
+    if not json_text:
+        raise RuntimeError("Could not find model output text in response.")
+
+    try:
+        return json.loads(json_text)
+    except json.JSONDecodeError:
+        raise RuntimeError(f"Model did not return valid JSON. Raw output:\n{json_text}")
+
+
+def get_api_key() -> str:
+    # Streamlit Cloud: store in Secrets as OPENAI_API_KEY
+    return st.secrets.get("OPENAI_API_KEY", "").strip()
+
+
+# ----------------------------
+# UI
+# ----------------------------
+with st.expander("Optional context (who is being interviewed / what problem space?)", expanded=False):
+    context = st.text_area(
+        "Context (optional)",
+        height=80,
+        placeholder="Example: Interviews with small retail store owners about inventory and reordering.",
+    )
+
+notes = st.text_area(
+    "Interview notes or transcript",
+    height=260,
+    placeholder="Paste raw notes here. Include direct quotes when possible.",
+)
+
+col1, col2 = st.columns([1, 1])
+with col1:
+    analyze = st.button("Analyze")
+with col2:
+    demo = st.button("Use demo text")
+
+if demo:
+    notes = """Interview 1 (shop owner):
+- "We track inventory in spreadsheets. It's always wrong."
+- "I lose sales because we run out of best sellers unexpectedly."
+- "I tried software before but it was too complicated for my staff."
+Interview 2 (manager):
+- "Reordering takes too long; vendors all have different processes."
+- "I don't trust the numbers from last week's count."
+- "Training new employees on inventory is painful."
+"""
+
+if analyze:
     if not notes.strip():
-        st.warning("Please paste interview notes.")
-    else:
-        st.subheader("Key Pain Points")
-        st.write("- Placeholder")
+        st.warning("Please paste interview notes first.")
+        st.stop()
 
-        st.subheader("Themes")
-        st.write("- Placeholder")
+    api_key = get_api_key()
+    if not api_key:
+        st.error("Missing OPENAI_API_KEY. Add it in Streamlit Secrets, then rerun the app.")
+        st.stop()
 
-        st.subheader("Representative Quotes")
-        st.write("> Placeholder")
+    with st.spinner("Analyzing notes..."):
+        try:
+            result = call_openai_synthesis(api_key=api_key, notes=notes, context=context)
+        except Exception as e:
+            st.error(f"Analysis failed: {e}")
+            st.stop()
 
-        st.subheader("Candidate PMF Hypotheses")
-        st.write("- Placeholder")
+    # ----------------------------
+    # Render results
+    # ----------------------------
+    st.success("Done")
+
+    st.subheader("Key Pain Points")
+    for p in result.get("pain_points", []):
+        st.write(f"- {p}")
+
+    st.subheader("Themes")
+    for t in result.get("themes", []):
+        theme_name = t.get("theme", "Theme")
+        st.markdown(f"**{theme_name}**")
+        for p in t.get("pain_points", []):
+            st.write(f"- {p}")
+        st.write("")
+
+    st.subheader("Representative Quotes")
+    for q in result.get("quotes", []):
+        quote = q.get("quote", "").strip()
+        supports = q.get("supports", "").strip()
+        if quote:
+            st.markdown(f'> "{quote}"')
+            if supports:
+                st.caption(f"Supports: {supports}")
+            st.write("")
+
+    st.subheader("Candidate PMF Hypotheses")
+    for h in result.get("pmf_hypotheses", []):
+        st.write(f"- {h}")
+
+    st.subheader("Open Questions to Validate Next")
+    for oq in result.get("open_questions", []):
+        st.write(f"- {oq}")
+
+    # Useful for copying / debugging
+    st.divider()
+    st.subheader("Raw JSON (copy/export)")
+    st.code(json.dumps(result, indent=2), language="json")
