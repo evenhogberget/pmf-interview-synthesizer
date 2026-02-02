@@ -1,8 +1,7 @@
 # pmf-interview-synthesizer
-AI-assisted synthesis of customer interviews for PMF discovery
-import streamlit as st
 # AI-assisted synthesis of customer interviews for PMF discovery
 
+import streamlit as st
 
 st.set_page_config(page_title="PMF Interview Synthesizer", layout="centered")
 
@@ -26,4 +25,3 @@ if st.button("Analyze"):
 
         st.subheader("Candidate PMF Hypotheses")
         st.write("- Placeholder")
-      
