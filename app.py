@@ -1,6 +1,8 @@
 # pmf-interview-synthesizer
 AI-assisted synthesis of customer interviews for PMF discovery
 import streamlit as st
+# AI-assisted synthesis of customer interviews for PMF discovery
+
 
 st.set_page_config(page_title="PMF Interview Synthesizer", layout="centered")
 
