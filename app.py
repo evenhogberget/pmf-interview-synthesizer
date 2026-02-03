@@ -1,7 +1,16 @@
 import json
 import requests
 import streamlit as st
-
+def load_demo():
+    st.session_state["notes"] = """Interview 1 (shop owner):
+- "We track inventory in spreadsheets. It's always wrong."
+- "I lose sales because we run out of best sellers unexpectedly."
+- "I tried software before but it was too complicated for my staff."
+Interview 2 (manager):
+- "Reordering takes too long; vendors all have different processes."
+- "I don't trust the numbers from last week's count."
+- "Training new employees on inventory is painful."
+"""
 # ----------------------------
 # Config
 # ----------------------------
@@ -138,20 +147,8 @@ col1, col2 = st.columns([1, 1])
 with col1:
     analyze = st.button("Analyze")
 with col2:
-    demo = st.button("Use demo text")
-
-if demo:
-    st.session_state["notes"] = """Interview 1 (shop owner):
-- "We track inventory in spreadsheets. It's always wrong."
-- "I lose sales because we run out of best sellers unexpectedly."
-- "I tried software before but it was too complicated for my staff."
-Interview 2 (manager):
-- "Reordering takes too long; vendors all have different processes."
-- "I don't trust the numbers from last week's count."
-- "Training new employees on inventory is painful."
-"""
-    st.rerun()
-
+  st.button("Use demo text", on_click=load_demo)
+    
 if analyze:
     if not notes.strip():
         st.warning("Please paste interview notes first.")
