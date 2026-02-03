@@ -126,11 +126,13 @@ with st.expander("Optional context (who is being interviewed / what problem spac
         placeholder="Example: Interviews with small retail store owners about inventory and reordering.",
     )
 
-notes = st.text_area(
+st.text_area(
     "Interview notes or transcript",
     height=260,
     placeholder="Paste raw notes here. Include direct quotes when possible.",
+    key="notes",
 )
+notes = st.session_state.get("notes", "")
 
 col1, col2 = st.columns([1, 1])
 with col1:
@@ -139,7 +141,7 @@ with col2:
     demo = st.button("Use demo text")
 
 if demo:
-    notes = """Interview 1 (shop owner):
+    st.session_state["notes"] = """Interview 1 (shop owner):
 - "We track inventory in spreadsheets. It's always wrong."
 - "I lose sales because we run out of best sellers unexpectedly."
 - "I tried software before but it was too complicated for my staff."
@@ -148,6 +150,7 @@ Interview 2 (manager):
 - "I don't trust the numbers from last week's count."
 - "Training new employees on inventory is painful."
 """
+    st.rerun()
 
 if analyze:
     if not notes.strip():
