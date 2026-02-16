@@ -168,14 +168,14 @@ if analyze:
             st.stop()
 
     st.success("Done")
-
-    st.subheader("Key Pain Points")
-    for p in result.get("pain_points", []):
-        st.markdown(f"**{p.get('label')}**")
-        st.write(p.get("description"))
-        st.caption(f"Segments: {', '.join(p.get('segments', []))}")
-        st.caption(f"Evidence count: {p.get('evidence_count')}")
-        st.write("")
+st.subheader("Key Pain Points")
+for p in result.get("pain_points", []):
+    st.markdown(f"### {p.get('label')}")
+    st.write(p.get("description"))
+    st.caption(f"Segments: {', '.join(p.get('segments', []))}")
+    st.caption(f"Evidence interviews: {', '.join(p.get('evidence_interviews', []))}")
+    st.caption(f"Evidence count: {p.get('evidence_count')} | Strength: {p.get('evidence_strength')}")
+    st.write("")
 
     st.subheader("Themes")
     for t in result.get("themes", []):
