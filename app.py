@@ -24,11 +24,13 @@ MODEL = "gpt-4o-mini"  # Good default for cost/speed. You can change later.
 # Helpers
 # ----------------------------
 def call_openai_synthesis(api_key: str, notes: str, context: str = "") -> dict:
+
     system_instructions = (
         "You are an assistant helping early-stage product teams synthesize customer interview notes.\n"
         "Return ONLY valid JSON matching the schema exactly."
     )
-user_prompt = f"""
+
+    user_prompt = f"""
 CONTEXT:
 {context.strip()}
 
@@ -97,7 +99,9 @@ STRICT OUTPUT JSON:
   "open_questions": ["..."]
 }}
 """.strip()
- url = "https://api.openai.com/v1/responses"
+
+    url = "https://api.openai.com/v1/responses"
+
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
@@ -113,6 +117,7 @@ STRICT OUTPUT JSON:
     }
 
     r = requests.post(url, headers=headers, json=payload, timeout=60)
+
     if r.status_code != 200:
         raise RuntimeError(f"OpenAI API error {r.status_code}: {r.text}")
 
