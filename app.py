@@ -48,7 +48,7 @@ RAW INTERVIEW NOTES:
 {notes.strip()}
 
 TASK:
-1) Extract 5–10 key customer pain points.
+1) Extract 5 – 10 key customer pain points.
    - Each pain point must include:
      - A short label
      - A clear description
