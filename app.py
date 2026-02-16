@@ -28,8 +28,7 @@ def call_openai_synthesis(api_key: str, notes: str, context: str = "") -> dict:
         "You are an assistant helping early-stage product teams synthesize customer interview notes.\n"
         "Return ONLY valid JSON matching the schema exactly."
     )
-
-    user_prompt = f"""
+user_prompt = f"""
 CONTEXT:
 {context.strip()}
 
@@ -37,27 +36,32 @@ RAW INTERVIEW NOTES:
 {notes.strip()}
 
 TASK:
-1) Extract 5-10 key customer pain points.
-   Each must include:
-   - label
-   - description
-   - segments
-   - evidence_count
 
-2) Group into 3-6 themes.
-   Each must include:
-   - theme
-   - pain_points (labels)
-   - evidence_count
+1) Extract 5-10 key customer pain points.
+Each pain point must include:
+- label
+- description
+- segments
+- evidence_interviews (e.g., ["Interview 1", "Interview 3"])
+- evidence_count (number of distinct interviews)
+- evidence_strength ("low"=1, "medium"=2, "high"=3+)
+
+2) Group pain points into 3-6 themes.
+Each theme must include:
+- theme
+- pain_points (labels)
+- evidence_count
 
 3) Provide representative quotes with:
-   - quote
-   - segment
-   - supports (pain_point_label)
+- quote
+- segment
+- interview
+- supports (pain_point_label)
 
-4) Write structured PMF hypotheses.
+4) Write 4-6 structured PMF hypotheses in measurable format:
+"For [segment] who [problem], we believe [change] will improve [metric] by [target] within [timeframe], validated by [test]."
 
-5) Identify contradictions.
+5) Identify contradictions or meaningful segment differences.
 
 6) List open validation questions.
 
@@ -65,13 +69,13 @@ STRICT OUTPUT JSON:
 {{
   "pain_points": [
     {{
-  "label": "...",
-  "description": "...",
-  "segments": ["..."],
-  "evidence_count": 0,
-  "evidence_interviews": ["Interview 1", "Interview 3"],
-  "evidence_strength": "low"
-}}
+      "label": "...",
+      "description": "...",
+      "segments": ["..."],
+      "evidence_interviews": ["Interview 1"],
+      "evidence_count": 1,
+      "evidence_strength": "low"
+    }}
   ],
   "themes": [
     {{
@@ -84,6 +88,7 @@ STRICT OUTPUT JSON:
     {{
       "quote": "...",
       "segment": "...",
+      "interview": "Interview 1",
       "supports": "..."
     }}
   ],
