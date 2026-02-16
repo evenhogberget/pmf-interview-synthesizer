@@ -143,7 +143,7 @@ with col1:
     analyze = st.button("Analyze")
 with col2:
   st.button("Use demo text", on_click=load_demo)
-    if analyze:
+if analyze:
     if not notes.strip():
         st.warning("Please paste interview notes first.")
         st.stop()
@@ -198,4 +198,4 @@ with col2:
 
     st.divider()
     st.subheader("Raw JSON")
-    st.code(json.dumps(result, indent=2), language="json")
+    st.code(json.dumps(result, indent=2), language="json")    
