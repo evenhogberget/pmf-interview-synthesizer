@@ -171,43 +171,46 @@ if analyze:
             st.error(f"Analysis failed: {e}")
             st.stop()
 
+    # --- normalize evidence counts + strength (single source of truth) ---
+    for p in result.get("pain_points", []):
+        interviews = p.get("evidence_interviews", [])
+        interviews = list(dict.fromkeys(interviews))  # unique
+        p["evidence_interviews"] = interviews
+        p["evidence_count"] = len(interviews)
+
+        if p["evidence_count"] <= 1:
+            p["evidence_strength"] = "low"
+        elif p["evidence_count"] == 2:
+            p["evidence_strength"] = "medium"
+        else:
+            p["evidence_strength"] = "high"
+
     st.success("Done")
-st.subheader("Key Pain Points")
-for p in result.get("pain_points", []):
-    st.markdown(f"### {p.get('label')}")
-    st.write(p.get("description"))
-    st.caption(f"Segments: {', '.join(p.get('segments', []))}")
-    st.caption(f"Evidence interviews: {', '.join(p.get('evidence_interviews', []))}")
-    st.caption(f"Evidence count: {p.get('evidence_count')} | Strength: {p.get('evidence_strength')}")
-    st.write("")
-    # --- normalize evidence counts + strength (don’t trust the model here) ---
-for p in result.get("pain_points", []):
-    interviews = list(dict.fromkeys(p.get("evidence_interviews", [])))  # unique, keep order
-    p["evidence_interviews"] = interviews
-    p["evidence_count"] = len(interviews)
 
-    if p["evidence_count"] <= 1:
-        p["evidence_strength"] = "low"
-    elif p["evidence_count"] == 2:
-        p["evidence_strength"] = "medium"
-    else:
-        p["evidence_strength"] = "high"
+    st.subheader("Key Pain Points")
+    for p in result.get("pain_points", []):
+        st.markdown(f"### {p.get('label')}")
+        st.write(p.get("description"))
+        st.caption(f"Segments: {', '.join(p.get('segments', []))}")
+        st.caption(f"Evidence interviews: {', '.join(p.get('evidence_interviews', []))}")
+        st.caption(f"Evidence count: {p.get('evidence_count')} | Strength: {p.get('evidence_strength')}")
+        st.write("")
 
-# ✅ Themes must start AFTER the loop ends
-st.subheader("Themes")
-for t in result.get("themes", []):
-    st.markdown(f"### {t.get('theme')}")
-    st.caption(f"Total evidence count: {t.get('evidence_count')}")
-    for label in t.get("pain_points", []):
-        st.write(f"- {label}")
-    st.write("")
-st.subheader("Representative Quotes")
-for q in result.get("quotes", []):
-    st.markdown(f'> "{q.get("quote")}"')
-    st.caption(
-        f'Segment: {q.get("segment")} | Interview: {q.get("interview")} | Supports: {q.get("supports")}'
-    )
-    st.write("")
+    st.subheader("Themes")
+    for t in result.get("themes", []):
+        st.markdown(f"### {t.get('theme')}")
+        st.caption(f"Total evidence count: {t.get('evidence_count')}")
+        for label in t.get("pain_points", []):
+            st.write(f"- {label}")
+        st.write("")
+
+    st.subheader("Representative Quotes")
+    for q in result.get("quotes", []):
+        st.markdown(f'> "{q.get("quote")}"')
+        st.caption(
+            f'Segment: {q.get("segment")} | Interview: {q.get("interview")} | Supports: {q.get("supports")}'
+        )
+        st.write("")
 
     st.subheader("Candidate PMF Hypotheses")
     for h in result.get("pmf_hypotheses", []):
@@ -223,4 +226,4 @@ for q in result.get("quotes", []):
 
     st.divider()
     st.subheader("Raw JSON")
-    st.code(json.dumps(result, indent=2), language="json")    
+    st.code(json.dumps(result, indent=2), language="json")
