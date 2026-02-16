@@ -24,57 +24,44 @@ MODEL = "gpt-4o-mini"  # Good default for cost/speed. You can change later.
 # Helpers
 # ----------------------------
 def call_openai_synthesis(api_key: str, notes: str, context: str = "") -> dict:
-    """
-    Calls OpenAI Responses API and returns structured JSON.
-    """
     system_instructions = (
         "You are an assistant helping early-stage product teams synthesize customer interview notes.\n"
-        "Your job: extract evidence-based insights, avoid making up facts, and avoid overconfident conclusions.\n"
-        "Return ONLY valid JSON matching the schema exactly. No markdown, no extra text."
+        "Return ONLY valid JSON matching the schema exactly."
     )
 
     user_prompt = f"""
-CONTEXT (optional):
-{context.strip()}
-
-RAW INTERVIEW NOTES:
-{notes.strip()}
-
-    user_prompt = f"""
-CONTEXT (optional):
+CONTEXT:
 {context.strip()}
 
 RAW INTERVIEW NOTES:
 {notes.strip()}
 
 TASK:
-1) Extract 5 – 10 key customer pain points.
-   - Each pain point must include:
-     - A short label
-     - A clear description
-     - The segment(s) who expressed it (e.g., shop owner, manager)
-     - An evidence_count (number of distinct interviews mentioning it)
+1) Extract 5-10 key customer pain points.
+   Each must include:
+   - label
+   - description
+   - segments
+   - evidence_count
 
-2) Group pain points into 3–6 themes.
-   - Each theme must include:
-     - Theme name
-     - Pain points under it
-     - Total evidence_count (sum of mentions across interviews)
+2) Group into 3-6 themes.
+   Each must include:
+   - theme
+   - pain_points (labels)
+   - evidence_count
 
-3) Provide 6–10 representative quotes.
-   - Each quote must include:
-     - The quote text (verbatim)
-     - The segment (who said it)
-     - What pain point it supports
+3) Provide representative quotes with:
+   - quote
+   - segment
+   - supports (pain_point_label)
 
-4) Write 4–7 PMF hypotheses in structured format:
-   "For [segment] who [problem], we believe [solution direction] will lead to [outcome], validated by [test]."
+4) Write structured PMF hypotheses.
 
-5) Identify contradictions or segment differences (if any).
+5) Identify contradictions.
 
-6) List 3–6 open validation questions.
+6) List open validation questions.
 
-STRICT OUTPUT JSON SCHEMA:
+STRICT OUTPUT JSON:
 {{
   "pain_points": [
     {{
@@ -87,7 +74,7 @@ STRICT OUTPUT JSON SCHEMA:
   "themes": [
     {{
       "theme": "...",
-      "pain_points": ["pain_point_label"],
+      "pain_points": ["..."],
       "evidence_count": 0
     }}
   ],
@@ -95,19 +82,13 @@ STRICT OUTPUT JSON SCHEMA:
     {{
       "quote": "...",
       "segment": "...",
-      "supports": "pain_point_label"
+      "supports": "..."
     }}
   ],
   "pmf_hypotheses": ["..."],
   "contradictions": ["..."],
   "open_questions": ["..."]
 }}
-
-RULES:
-- Use ONLY evidence grounded in the notes.
-- evidence_count must reflect distinct interviews, not repeated quotes.
-- If evidence is weak, reflect that honestly.
-- Return ONLY JSON.
 """.strip()
 
     url = "https://api.openai.com/v1/responses"
@@ -122,7 +103,6 @@ RULES:
             {"role": "system", "content": system_instructions},
             {"role": "user", "content": user_prompt},
         ],
-        # Encourage reliable JSON output
         "text": {"format": {"type": "json_object"}},
     }
 
@@ -131,31 +111,9 @@ RULES:
         raise RuntimeError(f"OpenAI API error {r.status_code}: {r.text}")
 
     data = r.json()
+    json_text = data["output"][0]["content"][0]["text"]
 
-    # The Responses API returns text in output[0].content[0].text for many models
-    # We'll robustly search for the first text chunk.
-    json_text = None
-    try_paths = [
-        lambda d: d["output"][0]["content"][0]["text"],
-        lambda d: d["output_text"],
-    ]
-    for fn in try_paths:
-        try:
-            candidate = fn(data)
-            if isinstance(candidate, str) and candidate.strip():
-                json_text = candidate
-                break
-        except Exception:
-            pass
-
-    if not json_text:
-        raise RuntimeError("Could not find model output text in response.")
-
-    try:
-        return json.loads(json_text)
-    except json.JSONDecodeError:
-        raise RuntimeError(f"Model did not return valid JSON. Raw output:\n{json_text}")
-
+    return json.loads(json_text)
 
 def get_api_key() -> str:
     # Streamlit Cloud: store in Secrets as OPENAI_API_KEY
