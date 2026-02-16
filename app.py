@@ -64,14 +64,14 @@ TASK:
 STRICT OUTPUT JSON:
 {{
   "pain_points": [
-    {
+    {{
   "label": "...",
   "description": "...",
   "segments": ["..."],
   "evidence_count": 0,
   "evidence_interviews": ["Interview 1", "Interview 3"],
   "evidence_strength": "low"
-}
+}}
   ],
   "themes": [
     {{
