@@ -97,8 +97,7 @@ STRICT OUTPUT JSON:
   "open_questions": ["..."]
 }}
 """.strip()
-
-    url = "https://api.openai.com/v1/responses"
+ url = "https://api.openai.com/v1/responses"
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
