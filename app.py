@@ -40,36 +40,73 @@ CONTEXT (optional):
 RAW INTERVIEW NOTES:
 {notes.strip()}
 
+    user_prompt = f"""
+CONTEXT (optional):
+{context.strip()}
+
+RAW INTERVIEW NOTES:
+{notes.strip()}
+
 TASK:
-1) Extract 5–10 key customer pain points (neutral, problem-focused, no solution language).
-2) Group them into 3–6 themes with short theme names.
-3) Provide 6–10 representative quotes from the notes (verbatim snippets).
-4) Write 4–7 candidate PMF hypotheses phrased to be testable.
-5) List 3–6 "open questions" that require more interviews to resolve.
+1) Extract 5–10 key customer pain points.
+   - Each pain point must include:
+     - A short label
+     - A clear description
+     - The segment(s) who expressed it (e.g., shop owner, manager)
+     - An evidence_count (number of distinct interviews mentioning it)
+
+2) Group pain points into 3–6 themes.
+   - Each theme must include:
+     - Theme name
+     - Pain points under it
+     - Total evidence_count (sum of mentions across interviews)
+
+3) Provide 6–10 representative quotes.
+   - Each quote must include:
+     - The quote text (verbatim)
+     - The segment (who said it)
+     - What pain point it supports
+
+4) Write 4–7 PMF hypotheses in structured format:
+   "For [segment] who [problem], we believe [solution direction] will lead to [outcome], validated by [test]."
+
+5) Identify contradictions or segment differences (if any).
+
+6) List 3–6 open validation questions.
 
 STRICT OUTPUT JSON SCHEMA:
 {{
-  "pain_points": ["..."],
+  "pain_points": [
+    {{
+      "label": "...",
+      "description": "...",
+      "segments": ["..."],
+      "evidence_count": 0
+    }}
+  ],
   "themes": [
     {{
       "theme": "...",
-      "pain_points": ["..."]
+      "pain_points": ["pain_point_label"],
+      "evidence_count": 0
     }}
   ],
   "quotes": [
     {{
       "quote": "...",
-      "supports": "pain_point or theme"
+      "segment": "...",
+      "supports": "pain_point_label"
     }}
   ],
   "pmf_hypotheses": ["..."],
+  "contradictions": ["..."],
   "open_questions": ["..."]
 }}
 
 RULES:
-- Use ONLY information grounded in the notes for pain points/themes/quotes.
-- If notes are thin, say so in open_questions (do not invent).
-- Quotes must be copied directly from the notes (short snippets are fine).
+- Use ONLY evidence grounded in the notes.
+- evidence_count must reflect distinct interviews, not repeated quotes.
+- If evidence is weak, reflect that honestly.
 - Return ONLY JSON.
 """.strip()
 
