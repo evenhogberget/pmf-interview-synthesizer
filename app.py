@@ -143,64 +143,59 @@ with col1:
     analyze = st.button("Analyze")
 with col2:
   st.button("Use demo text", on_click=load_demo)
-    
-if analyze:
+    if analyze:
     if not notes.strip():
         st.warning("Please paste interview notes first.")
         st.stop()
 
     api_key = get_api_key()
     if not api_key:
-        st.error("Missing OPENAI_API_KEY. Add it in Streamlit Secrets, then rerun the app.")
+        st.error("Missing OPENAI_API_KEY.")
         st.stop()
 
-    with st.spinner("Analyzing notes..."):
+    with st.spinner("Analyzing..."):
         try:
-            result = call_openai_synthesis(api_key=api_key, notes=notes, context=context)
+            result = call_openai_synthesis(api_key, notes, context)
         except Exception as e:
             st.error(f"Analysis failed: {e}")
             st.stop()
 
-    # ----------------------------
-    # Render results
-    # ----------------------------
     st.success("Done")
 
     st.subheader("Key Pain Points")
-for p in result.get("pain_points", []):
-    st.markdown(f"**{p.get('label')}**")
-    st.write(p.get("description"))
-    st.caption(f"Segments: {', '.join(p.get('segments', []))}")
-    st.caption(f"Evidence count: {p.get('evidence_count')}")
-    st.write("")
-    
-   st.subheader("Themes")
-for t in result.get("themes", []):
-    st.markdown(f"### {t.get('theme')}")
-    st.caption(f"Total evidence count: {t.get('evidence_count')}")
-    for label in t.get("pain_points", []):
-        st.write(f"- {label}")
-    st.write("")
+    for p in result.get("pain_points", []):
+        st.markdown(f"**{p.get('label')}**")
+        st.write(p.get("description"))
+        st.caption(f"Segments: {', '.join(p.get('segments', []))}")
+        st.caption(f"Evidence count: {p.get('evidence_count')}")
+        st.write("")
 
- st.subheader("Representative Quotes")
-for q in result.get("quotes", []):
-    st.markdown(f'> "{q.get("quote")}"')
-    st.caption(f'Segment: {q.get("segment")} | Supports: {q.get("supports")}')
-    st.write("")
+    st.subheader("Themes")
+    for t in result.get("themes", []):
+        st.markdown(f"### {t.get('theme')}")
+        st.caption(f"Total evidence count: {t.get('evidence_count')}")
+        for label in t.get("pain_points", []):
+            st.write(f"- {label}")
+        st.write("")
+
+    st.subheader("Representative Quotes")
+    for q in result.get("quotes", []):
+        st.markdown(f'> "{q.get("quote")}"')
+        st.caption(f'Segment: {q.get("segment")} | Supports: {q.get("supports")}')
+        st.write("")
 
     st.subheader("Candidate PMF Hypotheses")
     for h in result.get("pmf_hypotheses", []):
         st.write(f"- {h}")
 
+    st.subheader("Contradictions / Segment Differences")
+    for c in result.get("contradictions", []):
+        st.write(f"- {c}")
+
     st.subheader("Open Questions to Validate Next")
     for oq in result.get("open_questions", []):
         st.write(f"- {oq}")
-        
-    st.subheader("Contradictions / Segment Differences")
-for c in result.get("contradictions", []):
-    st.write(f"- {c}")
 
-    # Useful for copying / debugging
     st.divider()
-    st.subheader("Raw JSON (copy/export)")
+    st.subheader("Raw JSON")
     st.code(json.dumps(result, indent=2), language="json")
