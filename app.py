@@ -181,13 +181,14 @@ for p in result.get("pain_points", []):
     st.caption(f"Evidence count: {p.get('evidence_count')} | Strength: {p.get('evidence_strength')}")
     st.write("")
 
-    st.subheader("Themes")
-    for t in result.get("themes", []):
-        st.markdown(f"### {t.get('theme')}")
-        st.caption(f"Total evidence count: {t.get('evidence_count')}")
-        for label in t.get("pain_points", []):
-            st.write(f"- {label}")
-        st.write("")
+# ✅ Themes must start AFTER the loop ends
+st.subheader("Themes")
+for t in result.get("themes", []):
+    st.markdown(f"### {t.get('theme')}")
+    st.caption(f"Total evidence count: {t.get('evidence_count')}")
+    for label in t.get("pain_points", []):
+        st.write(f"- {label}")
+    st.write("")
 st.subheader("Representative Quotes")
 for q in result.get("quotes", []):
     st.markdown(f'> "{q.get("quote")}"')
