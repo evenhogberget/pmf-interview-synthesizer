@@ -209,26 +209,26 @@ if analyze:
     st.success("Done")
 
     st.subheader("Key Pain Points")
-    for p in result.get("pain_points", []):
-        st.write(f"- {p}")
+for p in result.get("pain_points", []):
+    st.markdown(f"**{p.get('label')}**")
+    st.write(p.get("description"))
+    st.caption(f"Segments: {', '.join(p.get('segments', []))}")
+    st.caption(f"Evidence count: {p.get('evidence_count')}")
+    st.write("")
+    
+   st.subheader("Themes")
+for t in result.get("themes", []):
+    st.markdown(f"### {t.get('theme')}")
+    st.caption(f"Total evidence count: {t.get('evidence_count')}")
+    for label in t.get("pain_points", []):
+        st.write(f"- {label}")
+    st.write("")
 
-    st.subheader("Themes")
-    for t in result.get("themes", []):
-        theme_name = t.get("theme", "Theme")
-        st.markdown(f"**{theme_name}**")
-        for p in t.get("pain_points", []):
-            st.write(f"- {p}")
-        st.write("")
-
-    st.subheader("Representative Quotes")
-    for q in result.get("quotes", []):
-        quote = q.get("quote", "").strip()
-        supports = q.get("supports", "").strip()
-        if quote:
-            st.markdown(f'> "{quote}"')
-            if supports:
-                st.caption(f"Supports: {supports}")
-            st.write("")
+ st.subheader("Representative Quotes")
+for q in result.get("quotes", []):
+    st.markdown(f'> "{q.get("quote")}"')
+    st.caption(f'Segment: {q.get("segment")} | Supports: {q.get("supports")}')
+    st.write("")
 
     st.subheader("Candidate PMF Hypotheses")
     for h in result.get("pmf_hypotheses", []):
@@ -237,6 +237,10 @@ if analyze:
     st.subheader("Open Questions to Validate Next")
     for oq in result.get("open_questions", []):
         st.write(f"- {oq}")
+        
+    st.subheader("Contradictions / Segment Differences")
+for c in result.get("contradictions", []):
+    st.write(f"- {c}")
 
     # Useful for copying / debugging
     st.divider()
