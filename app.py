@@ -184,12 +184,13 @@ for p in result.get("pain_points", []):
         for label in t.get("pain_points", []):
             st.write(f"- {label}")
         st.write("")
-
-    st.subheader("Representative Quotes")
-    for q in result.get("quotes", []):
-        st.markdown(f'> "{q.get("quote")}"')
-        st.caption(f'Segment: {q.get("segment")} | Supports: {q.get("supports")}')
-        st.write("")
+st.subheader("Representative Quotes")
+for q in result.get("quotes", []):
+    st.markdown(f'> "{q.get("quote")}"')
+    st.caption(
+        f'Segment: {q.get("segment")} | Interview: {q.get("interview")} | Supports: {q.get("supports")}'
+    )
+    st.write("")
 
     st.subheader("Candidate PMF Hypotheses")
     for h in result.get("pmf_hypotheses", []):
