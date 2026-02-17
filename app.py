@@ -17,7 +17,32 @@ Interview 2 (manager):
 st.set_page_config(page_title="PMF Interview Synthesizer", layout="centered")
 st.title("PMF Interview Synthesizer")
 st.caption("AI-assisted synthesis of customer interviews into evidence-based PMF insights.")
+st.markdown("""
+<style>
+/* tighten spacing */
+.block-container {padding-top: 2rem; padding-bottom: 2rem;}
+/* nicer section titles */
+h1, h2, h3 {letter-spacing: -0.02em;}
+/* subtle card feel */
+[data-testid="stVerticalBlockBorderWrapper"] {
+  border-radius: 14px;
+}
+</style>
+""", unsafe_allow_html=True)
 
+# HERO
+st.markdown("### PMF Interview Synthesizer")
+st.markdown(
+    "Turn messy interview notes into **evidence-based pain points, themes, quotes, and PMF hypotheses** in one click."
+)
+
+cA, cB, cC, cD = st.columns(4)
+cA.markdown("✅ **Extract pain points**")
+cB.markdown("🧩 **Cluster themes**")
+cC.markdown("💬 **Pull quotes**")
+cD.markdown("📌 **Generate hypotheses**")
+
+st.divider()
 with st.sidebar:
     st.header("Settings")
     st.write("Tip: keep notes short + include quotes for best results.")
