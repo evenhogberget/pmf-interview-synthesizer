@@ -15,6 +15,14 @@ Interview 2 (manager):
 # Config
 # ----------------------------
 st.set_page_config(page_title="PMF Interview Synthesizer", layout="centered")
+st.title("PMF Interview Synthesizer")
+st.caption("AI-assisted synthesis of customer interviews into evidence-based PMF insights.")
+
+with st.sidebar:
+    st.header("Settings")
+    st.write("Tip: keep notes short + include quotes for best results.")
+    show_raw = st.checkbox("Show raw JSON", value=False)
+    max_pain_points = st.slider("Max pain points", 5, 15, 10)
 st.title("PMF Interview Synthesizer (MVP)")
 st.write("Paste customer interview notes below. This tool synthesizes pain points, themes, quotes, and PMF hypotheses.")
 
@@ -198,46 +206,77 @@ if analyze:
         t["evidence_count"] = len(unique_interviews)
 
     st.success("Done")
+    if not quotes:
+    st.info("No quotes were returned. Try including direct quotes in your notes.")
 
     # ---- ALL rendering must stay here ----
+st.success("Done ✅")
 
-    st.subheader("Key Pain Points")
-    for p in result.get("pain_points", []):
-        st.markdown(f"### {p.get('label')}")
-        st.write(p.get("description"))
-        st.caption(f"Segments: {', '.join(p.get('segments', []))}")
-        st.caption(f"Evidence interviews: {', '.join(p.get('evidence_interviews', []))}")
-        st.caption(f"Evidence count: {p.get('evidence_count')} | Strength: {p.get('evidence_strength')}")
-        st.write("")
+pain_points = result.get("pain_points", [])
+themes = result.get("themes", [])
+quotes = result.get("quotes", [])
+hypotheses = result.get("pmf_hypotheses", [])
+contradictions = result.get("contradictions", [])
+open_questions = result.get("open_questions", [])
 
-    st.subheader("Themes")
-    for t in result.get("themes", []):
-        st.markdown(f"### {t.get('theme')}")
-        st.caption(f"Total evidence count: {t.get('evidence_count')}")
-        for label in t.get("pain_points", []):
-            st.write(f"- {label}")
-        st.write("")
+# Quick top metrics
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("Pain points", len(pain_points))
+c2.metric("Themes", len(themes))
+c3.metric("Quotes", len(quotes))
+c4.metric("Hypotheses", len(hypotheses))
 
-    st.subheader("Representative Quotes")
-    for q in result.get("quotes", []):
-        st.markdown(f'> "{q.get("quote")}"')
-        st.caption(
-            f'Segment: {q.get("segment")} | Interview: {q.get("interview")} | Supports: {q.get("supports")}'
-        )
-        st.write("")
+st.download_button(
+    "Download JSON",
+    data=json.dumps(result, indent=2),
+    file_name="pmf_synthesis.json",
+    mime="application/json",
+)
 
-    st.subheader("Candidate PMF Hypotheses")
-    for h in result.get("pmf_hypotheses", []):
-        st.write(f"- {h}")
+tab1, tab2, tab3, tab4, tab5 = st.tabs(
+    ["Pain Points", "Themes", "Quotes", "Hypotheses", "Open Questions"]
+)
 
-    st.subheader("Contradictions / Segment Differences")
-    for c in result.get("contradictions", []):
-        st.write(f"- {c}")
+with tab1:
+    for p in pain_points:
+        with st.container(border=True):
+            st.subheader(p.get("label", ""))
+            st.write(p.get("description", ""))
+            st.caption("**Segments:** " + ", ".join(p.get("segments", [])))
+            st.caption("**Evidence:** " + ", ".join(p.get("evidence_interviews", [])))
+            st.caption(f"**Count:** {p.get('evidence_count')}  |  **Strength:** {p.get('evidence_strength')}")
 
-    st.subheader("Open Questions to Validate Next")
-    for oq in result.get("open_questions", []):
-        st.write(f"- {oq}")
+with tab2:
+    for t in themes:
+        with st.container(border=True):
+            st.subheader(t.get("theme", ""))
+            st.caption(f"**Total evidence count:** {t.get('evidence_count')}")
+            for label in t.get("pain_points", []):
+                st.write(f"• {label}")
 
+with tab3:
+    for q in quotes:
+        with st.container(border=True):
+            st.markdown(f'> "{q.get("quote", "")}"')
+            st.caption(f"**Segment:** {q.get('segment')}  |  **Interview:** {q.get('interview')}  |  **Supports:** {q.get('supports')}")
+
+with tab4:
+    if hypotheses:
+        for h in hypotheses:
+            with st.container(border=True):
+                st.write(h)
+    if contradictions:
+        st.divider()
+        st.subheader("Contradictions / segment differences")
+        for c in contradictions:
+            st.write(f"• {c}")
+
+with tab5:
+    for oq in open_questions:
+        with st.container(border=True):
+            st.write(f"• {oq}")
+
+if show_raw:
     st.divider()
     st.subheader("Raw JSON")
     st.code(json.dumps(result, indent=2), language="json")
