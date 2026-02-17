@@ -184,6 +184,16 @@ if analyze:
             p["evidence_strength"] = "medium"
         else:
             p["evidence_strength"] = "high"
+# Recompute theme evidence_count as unique interviews across its pain points
+pp_by_label = {p["label"]: p for p in result.get("pain_points", [])}
+
+for t in result.get("themes", []):
+    unique_interviews = set()
+    for label in t.get("pain_points", []):
+        p = pp_by_label.get(label)
+        if p:
+            unique_interviews.update(p.get("evidence_interviews", []))
+    t["evidence_count"] = len(unique_interviews)
 
     st.success("Done")
 
