@@ -23,8 +23,6 @@ with st.sidebar:
     st.write("Tip: keep notes short + include quotes for best results.")
     show_raw = st.checkbox("Show raw JSON", value=False)
     max_pain_points = st.slider("Max pain points", 5, 15, 10)
-st.title("PMF Interview Synthesizer (MVP)")
-st.write("Paste customer interview notes below. This tool synthesizes pain points, themes, quotes, and PMF hypotheses.")
 
 MODEL = "gpt-4o-mini"  # Good default for cost/speed. You can change later.
 
