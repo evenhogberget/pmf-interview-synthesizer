@@ -306,3 +306,5 @@ if analyze:
         st.divider()
         st.subheader("Raw JSON")
         st.code(json.dumps(result, indent=2), language="json")
+st.divider()
+st.caption("Built by Even • PMF Interview Synthesizer • MVP")
