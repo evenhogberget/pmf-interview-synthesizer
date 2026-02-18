@@ -165,6 +165,43 @@ def get_api_key() -> str:
 # ----------------------------
 
 # (optional) remove duplicate titles above — you currently have st.title twice
+left, right = st.columns([1.2, 1])
+
+with left:
+    st.subheader("Input")
+    with st.container(border=True):
+        context = st.text_area(
+            "Context (optional)",
+            height=90,
+            placeholder="Example: Interviews with small retail store owners about inventory and reordering.",
+        )
+
+        st.text_area(
+            "Interview notes or transcript",
+            height=280,
+            placeholder="Paste raw notes here. Include direct quotes when possible.",
+            key="notes",
+        )
+        notes = st.session_state.get("notes", "")
+
+        b1, b2 = st.columns([1, 1])
+        with b1:
+            analyze = st.button("Analyze", use_container_width=True)
+        with b2:
+            st.button("Use demo text", on_click=load_demo, use_container_width=True)
+
+with right:
+    st.subheader("Tips")
+    with st.container(border=True):
+        st.markdown(
+            """
+**For best results**
+- Label interviews like *Interview 1 (PM)*, *Interview 2 (Founder)*  
+- Include 3–5 direct quotes  
+- Keep each interview to 5–12 bullets  
+- Avoid summaries—paste raw notes
+"""
+        )
 
 with st.container(border=True):
     st.subheader("Inputs")
